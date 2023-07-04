@@ -1,5 +1,11 @@
+# import libraries
 import pickle
-import streamlit as st
+from pathlib import Path
+import pandas as pd  # pip install pandas openpyxl
+import streamlit as st  # pip install streamlit
+import streamlit_authenticator as stauth  # pip install streamlit-authenticator
+import pickle
+import os
 
 # Load the pickled model and encoder
 with open("my_model.pkl", "rb") as f:
@@ -7,13 +13,27 @@ with open("my_model.pkl", "rb") as f:
 with open("my_encoder.pkl", "rb") as f:
     encoder = pickle.load(f)
 
+# define filename
+csv_filename = 'historic_predictions.csv'
+
+# Check if the CSV file exists
+if not os.path.isfile(csv_filename):
+    # Create an empty DataFrame
+    df_empty = pd.DataFrame(columns=['country', 'gender', 'age', 'marital_status', 'prev_count_cred',
+                                     'US_Duration', 'Status', 'Education', 'Children', 'Bills',
+                                     'Loan_Application', 'Loan_Provider', 'Loan_Reason', 'Employment',
+                                     'Salary', 'Time_InUS', 'Credit', 'Loan_Amount', 'prediction'])
+
+    # Save the DataFrame as CSV
+    df_empty.to_csv(csv_filename, index=False)
+
+
 # Define the inputs
 country_options = ['N', 'Z ', 'Z', 'Ga', 'Ne', 'Ni', 'M', 'Ca', 'Nel', 'Ra', 'To', 'An', 'Rw', 'Mo']
 gender_options = ['Male', 'Female']
 age_options = ['36 - 40', '51-60', 'Above 60 years', '46 - 50', '41 - 45', '31 - 35', '26 - 30']
 marital_options = ['Married', 'Single', 'Separated', 'Divorced']
 prev_cred_options = ['No', 'Yes']
-
 US_Duration = ['1 - 2', '3 - 4', 'Below 1 year', '5 and above']
 Status = ['Lawful permanent resident', 'U.S. citizen', 'Nonimmigrant Visa Holder', 'Asylum or Refugee']
 Education = ['College or University', 'High School', 'Middle School or Junior High School']
@@ -34,26 +54,47 @@ Loan_Amount = [3.00e+03, 5.00e+02, 1.00e+03, 2.50e+05, 2.00e+03, 4.00e+05, 1.00e
 
 
 
+st.set_page_config(page_title="Credit Card", page_icon=":bar_chart:", layout="wide")
 
 
+# --- USER AUTHENTICATION ---
+names = ["Admin"]
+usernames = ["admin"]
+
+# load hashed passwords
+file_path = Path(__file__).parent / "hashed_pw.pkl"
+with file_path.open("rb") as file:
+    hashed_passwords = pickle.load(file)
+
+authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
+    "sales_dashboard", "abcdef", cookie_expiry_days=30)
+
+name, authentication_status, username = authenticator.login("Login", "main")
+
+if authentication_status == False:
+    st.error("Username/password is incorrect")
+
+if authentication_status == None:
+    st.warning("Please enter your username and password")
+
+if authentication_status:
 
 
-
-
-
-# Define the app
-def app():
-    st.set_page_config(layout="wide")
-    st.title("Loan Application Prediction")
+    # sidebar
+    authenticator.logout("Logout", "sidebar")
+    st.sidebar.title(f"Welcome {name}")
+  
+    # main page
+    st.title("Credit Card Predictions")
     
+
     # Get user inputs
     country = st.selectbox("Country", options=country_options)
     gender = st.selectbox("Gender", options=gender_options)
     age = st.selectbox("Age", options=age_options)
     marital_status = st.selectbox("Marital Status", options=marital_options)
     prev_count_cred = st.selectbox("Previous Count of Credit", options=prev_cred_options)
-    
-    US_Duration_ = st.selectbox("US_Duration", options= US_Duration)
+    US_Duration_ = st.selectbox("US_Duration", options=US_Duration)
     Status_ = st.selectbox("Status", options=Status)
     Education_ = st.selectbox("Education", options=Education)
     Children_ = st.selectbox("Children", options=Children)
@@ -67,15 +108,12 @@ def app():
     Credit_ = st.selectbox("Credit", options=Credit)
     Loan_Amount_ = st.selectbox("Loan_Amount", options=Loan_Amount)
 
-
-
-
-
-
-
+    # load data with historical predictions
+    df = pd.read_csv('historic_predictions.csv')
 
     # Add submit button
     if st.button("Predict"):
+
         # Apply encoder
         encoded_inputs = encoder.transform([[country, gender, age, marital_status, prev_count_cred, US_Duration_, Status_, Education_, Children_, Bills_, Loan_Application_, Loan_Provider_, Loan_Reason_, Employment_, Salary_, Time_InUS_, Credit_, Loan_Amount_]])
 
@@ -88,5 +126,35 @@ def app():
         else:
             st.markdown("### Result: Denied.")
 
-if __name__ == '__main__':
-    app()
+        # Display historic predictions as a table
+        st.markdown("## Historic Predictions")
+
+        # Create the DataFrame
+        df_pred = {
+            'country': country,
+            'gender': gender,
+            'age': age,
+            'marital_status': marital_status,
+            'prev_count_cred': prev_count_cred,
+            'US_Duration': US_Duration_,
+            'Status': Status_,
+            'Education': Education_,
+            'Children': Children_,
+            'Bills': Bills_,
+            'Loan_Application': Loan_Application_,
+            'Loan_Provider': Loan_Provider_,
+            'Loan_Reason': Loan_Reason_,
+            'Employment': Employment_,
+            'Salary': Salary_,
+            'Time_InUS': Time_InUS_,
+            'Credit': Credit_,
+            'Loan_Amount': Loan_Amount_,
+            'prediction': prediction[0]
+        }
+
+        # Append the df_pred DataFrame to the existing DataFrame
+        df = df.append(df_pred, ignore_index=True)
+        df.to_csv('historic_predictions.csv', index=False)
+
+    st.title("Historical Predictions")
+    st.dataframe(df)
