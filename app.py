@@ -29,7 +29,7 @@ if not os.path.isfile(csv_filename):
 
 
 # Define the inputs
-country_options = ['Namibia', 'Zambia ', 'Zimbabwe', 'Ga', 'Ne', 'Ni', 'M', 'Ca', 'Nel', 'Ra', 'To', 'An', 'Rw', 'Mo']
+country_options = ['N', 'Z', 'Z', 'Ga', 'Ne', 'Ni', 'M', 'Ca', 'Nel', 'Ra', 'To', 'An', 'Rw', 'Mo']
 gender_options = ['Male', 'Female']
 age_options = ['36 - 40', '51-60', 'Above 60 years', '46 - 50', '41 - 45', '31 - 35', '26 - 30']
 marital_options = ['Married', 'Single', 'Separated', 'Divorced']
