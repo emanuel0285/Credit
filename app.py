@@ -85,7 +85,7 @@ if authentication_status:
     st.sidebar.title(f"Welcome {name}")
   
     # main page
-    st.title("Credit Card Predictions")
+    st.title("Creditworthness Predictions")
     
 
     # Get user inputs
