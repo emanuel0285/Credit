@@ -99,7 +99,7 @@ if authentication_status:
     Education_ = st.selectbox("Education", options=Education)
     Children_ = st.selectbox("Number of children you have", options=Children)
     Bills_ = st.selectbox("Are you uptodate with bills", options=Bills)
-    Loan_Application_ = st.selectbox("Loan application type", options=Loan_Application)
+    Loan_Application_ = st.selectbox("Have you applied for a loan", options=Loan_Application)
     Loan_Provider_ = st.selectbox("Loan provider", options=Loan_Provider)
     Loan_Reason_ = st.selectbox("Loan reason", options=Loan_Reason)
     Employment_ = st.selectbox("Employment", options=Employment)
